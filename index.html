@@ -1,0 +1,1957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RefriSystem Pro v27</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<style>
+/* ── TOKENS — LIGHT (default) ── */
+:root {
+  --bg:       #EEF2F7;
+  --surf:     #FFFFFF;
+  --surf2:    #F5F8FC;
+  --border:   #C8D6E5;
+  --border2:  #90A8BF;
+  --amber:    #C87D0E;
+  --amber-dim:#FDE8B8;
+  --blue:     #1565C0;
+  --blue-dim: #DBEAFE;
+  --text:     #142030;
+  --dim:      #5A7A94;
+  --success:  #166534;
+  --warn:     #92400E;
+  --err:      #B91C1C;
+  --mono:     'IBM Plex Mono', 'Courier New', monospace;
+  --sans:     'DM Sans', 'Segoe UI', sans-serif;
+  --cond:     'Barlow Condensed', 'Impact', sans-serif;
+}
+
+/* ── TOKENS — DARK ── */
+[data-theme="dark"] {
+  --bg:       #070F1E;
+  --surf:     #0D1E35;
+  --surf2:    #091628;
+  --border:   #1A3554;
+  --border2:  #2A5070;
+  --amber:    #F5A623;
+  --amber-dim:#7A530F;
+  --blue:     #4FC3F7;
+  --blue-dim: #1A4A62;
+  --text:     #C8D8EA;
+  --dim:      #5A7A94;
+  --success:  #3DBA80;
+  --warn:     #FF9800;
+  --err:      #FF5252;
+}
+
+/* ── RESET & BASE ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Blueprint grid */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(21,101,192,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(21,101,192,0.06) 1px, transparent 1px);
+  background-size: 36px 36px;
+  pointer-events: none;
+  z-index: 0;
+}
+[data-theme="dark"] body::before,
+[data-theme="dark"]::before {
+  background-image:
+    linear-gradient(rgba(79,195,247,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79,195,247,0.025) 1px, transparent 1px);
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--surf);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 16px;
+  padding: 0 20px; height: 52px;
+  flex-shrink: 0;
+}
+
+.logo {
+  display: flex; align-items: center; gap: 10px;
+  flex-shrink: 0;
+}
+.logo-hex {
+  width: 28px; height: 28px;
+  background: var(--amber);
+  clip-path: polygon(50% 0%,95% 25%,95% 75%,50% 100%,5% 75%,5% 25%);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 10px; font-weight: 600;
+  color: #000;
+}
+.logo-name {
+  font-family: var(--cond);
+  font-size: 18px; font-weight: 800;
+  letter-spacing: 2px; color: var(--text);
+  white-space: nowrap;
+}
+.logo-ver {
+  font-family: var(--mono);
+  font-size: 10px; color: var(--amber);
+  border: 1px solid var(--amber-dim);
+  padding: 1px 6px; border-radius: 10px;
+  margin-left: 6px;
+}
+
+.main-nav {
+  display: flex; gap: 2px;
+  background: var(--surf2);
+  border: 1px solid var(--border);
+  border-radius: 6px; padding: 3px;
+  margin-left: auto;
+}
+.main-nav button {
+  background: none; border: none; cursor: pointer;
+  font-family: var(--cond); font-size: 13px; font-weight: 700;
+  letter-spacing: 1px; color: var(--dim);
+  padding: 5px 14px; border-radius: 4px;
+  transition: all .2s;
+}
+.main-nav button.active {
+  background: var(--amber); color: #000;
+}
+.main-nav button:not(.active):hover { color: var(--text); }
+
+.toolbar {
+  display: flex; gap: 6px; flex-shrink: 0;
+}
+.tool-btn {
+  background: var(--surf2); border: 1px solid var(--border2);
+  color: var(--text); cursor: pointer;
+  font-family: var(--cond); font-size: 12px; font-weight: 600;
+  letter-spacing: 0.5px; padding: 5px 10px; border-radius: 4px;
+  transition: all .2s; white-space: nowrap;
+}
+.tool-btn:hover { border-color: var(--amber); color: var(--amber); }
+.tool-btn.danger { border-color: #3a1515; color: #a04040; }
+.tool-btn.danger:hover { border-color: var(--err); color: var(--err); }
+.tool-btn.primary {
+  background: var(--amber); color: #000; border-color: var(--amber);
+}
+.tool-btn.primary:hover { background: #ffc04a; }
+
+/* ── PARAMS STRIP ── */
+.params-strip {
+  position: relative; z-index: 10;
+  background: var(--surf);
+  border-bottom: 1px solid var(--border);
+}
+.params-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px; height: 36px; cursor: pointer;
+  user-select: none;
+  font-family: var(--cond); font-size: 12px; font-weight: 700;
+  letter-spacing: 1.5px; color: var(--blue);
+  transition: background .2s;
+}
+.params-header:hover { background: rgba(79,195,247,0.05); }
+.params-chevron { transition: transform .25s; display: inline-block; margin-right: 6px; }
+.params-strip.open .params-chevron { transform: rotate(90deg); }
+.params-summary {
+  font-family: var(--mono); font-size: 11px; color: var(--dim);
+  letter-spacing: 0;
+}
+.params-body {
+  display: none; padding: 16px 20px 20px;
+  border-top: 1px solid var(--border);
+  animation: fadeDown .2s ease;
+}
+.params-strip.open .params-body { display: block; }
+
+.params-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+.p-group { display: flex; flex-direction: column; gap: 5px; }
+.p-group label {
+  font-family: var(--cond); font-size: 11px; font-weight: 700;
+  letter-spacing: 1px; color: var(--blue); text-transform: uppercase;
+}
+.params-grid input,
+.params-grid select {
+  width: 100%;
+  background: var(--surf2); border: 1px solid var(--border2);
+  color: var(--text); border-radius: 4px;
+  padding: 7px 9px; font-size: 13px; font-family: var(--mono);
+}
+.params-grid input:focus,
+.params-grid select:focus { border-color: var(--amber); outline: none; }
+
+.loc-toggle { display: flex; gap: 4px; }
+.loc-opt {
+  flex: 1; text-align: center; cursor: pointer;
+  font-family: var(--cond); font-size: 11px; font-weight: 700;
+  padding: 6px; border: 1px solid var(--border2);
+  border-radius: 4px; color: var(--dim); transition: all .2s;
+  letter-spacing: 0.5px;
+}
+.loc-opt.active { background: var(--amber); color: #000; border-color: var(--amber); }
+
+.safety-badge {
+  display: inline-block; font-family: var(--mono);
+  font-size: 10px; padding: 2px 7px; border-radius: 3px;
+  margin-top: 4px;
+}
+.safety-A1  { background: rgba(61,186,128,0.15); color: var(--success); border: 1px solid rgba(61,186,128,0.3); }
+.safety-A2L { background: rgba(255,152,0,0.15);  color: var(--warn);    border: 1px solid rgba(255,152,0,0.3); }
+.safety-A3  { background: rgba(255,82,82,0.15);  color: var(--err);     border: 1px solid rgba(255,82,82,0.3); }
+
+.xcheck-alert {
+  margin: 0 20px 0; padding: 8px 14px;
+  background: rgba(255,152,0,0.1); border: 1px solid rgba(255,152,0,0.35);
+  color: var(--warn); font-size: 12px; border-radius: 4px;
+  display: none;
+}
+
+/* ── MAIN CONTENT ── */
+.main-content { position: relative; z-index: 1; }
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn .25s ease; }
+
+/* ── TWO-COLUMN LAYOUT ── */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  min-height: calc(100vh - 88px);
+}
+
+.col-panel {
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+/* LEFT PANEL */
+.circuits-panel {
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+}
+
+/* RIGHT PANEL */
+.results-panel {
+  position: sticky;
+  top: 52px;
+  height: calc(100vh - 52px);
+  overflow-y: auto;
+  background: var(--surf2);
+  display: flex; flex-direction: column;
+}
+
+/* Panel headers */
+.panel-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--surf);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 5;
+  flex-shrink: 0;
+}
+.panel-hdr-title {
+  font-family: var(--cond); font-size: 12px; font-weight: 800;
+  letter-spacing: 2px; color: var(--dim);
+}
+
+/* ── CIRCUIT CARD ── */
+.circuit-card {
+  border-bottom: 1px solid var(--border);
+  transition: background .2s;
+}
+.circuit-card:hover { background: rgba(79,195,247,0.02); }
+
+.circuit-top {
+  display: flex; align-items: center;
+  padding: 12px 16px 0;
+  gap: 10px;
+}
+.circuit-name-input {
+  flex: 1; background: transparent; border: none;
+  color: var(--amber); font-family: var(--cond);
+  font-size: 16px; font-weight: 700; letter-spacing: 1px;
+  padding: 0; min-width: 0;
+}
+.circuit-name-input:focus { outline: none; }
+.circuit-del-btn {
+  background: none; border: none; cursor: pointer;
+  color: #4a2020; font-size: 16px; padding: 2px 6px;
+  border-radius: 3px; transition: color .2s;
+}
+.circuit-del-btn:hover { color: var(--err); }
+
+.circuit-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 12px 16px;
+}
+
+.field-group { display: flex; flex-direction: column; gap: 4px; }
+.field-label {
+  font-family: var(--cond); font-size: 10px; font-weight: 700;
+  letter-spacing: 1px; color: var(--blue); text-transform: uppercase;
+}
+.field-input {
+  width: 100%; background: var(--surf2);
+  border: 1px solid var(--border);
+  color: var(--text); border-radius: 4px;
+  padding: 7px 9px; font-family: var(--mono); font-size: 13px;
+  transition: border-color .2s;
+}
+.field-input:focus { border-color: var(--amber); outline: none; }
+
+/* ── FITTINGS TOGGLE ── */
+.fittings-section { padding: 0 16px 14px; }
+
+.fit-line { margin-bottom: 6px; }
+.fit-toggle-btn {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  background: var(--surf); border: 1px solid var(--border);
+  color: var(--dim); cursor: pointer;
+  font-family: var(--cond); font-size: 11px; font-weight: 700;
+  letter-spacing: 1px; padding: 6px 10px; border-radius: 4px;
+  transition: all .2s; text-align: left;
+}
+.fit-toggle-btn:hover { border-color: var(--border2); color: var(--text); }
+.fit-toggle-btn.has-fits { border-color: var(--border2); color: var(--text); }
+.fit-count-badge {
+  background: var(--amber); color: #000;
+  font-family: var(--mono); font-size: 10px; font-weight: 600;
+  padding: 1px 6px; border-radius: 8px; margin-left: auto; margin-right: 8px;
+}
+.fit-arrow { font-size: 10px; transition: transform .2s; }
+.fit-toggle-btn.open .fit-arrow { transform: rotate(180deg); }
+
+.fit-body {
+  display: none;
+  padding: 10px;
+  background: rgba(7,15,30,0.5);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  animation: fadeDown .15s ease;
+}
+.fit-body.open { display: block; }
+
+.fit-add-row { display: flex; gap: 6px; margin-bottom: 8px; }
+.fit-add-row select {
+  flex: 2; background: var(--surf); border: 1px solid var(--border);
+  color: var(--text); border-radius: 4px; padding: 6px 8px;
+  font-size: 12px; font-family: var(--sans);
+}
+.fit-add-row input {
+  flex: 0 0 56px; background: var(--surf); border: 1px solid var(--border);
+  color: var(--text); border-radius: 4px; padding: 6px 8px;
+  font-family: var(--mono); font-size: 12px; text-align: center;
+}
+.fit-add-row select:focus,
+.fit-add-row input:focus { border-color: var(--amber); outline: none; }
+.fit-add-btn {
+  background: var(--amber); color: #000; border: none;
+  border-radius: 4px; padding: 6px 10px; cursor: pointer;
+  font-family: var(--cond); font-size: 12px; font-weight: 700;
+  letter-spacing: 0.5px; white-space: nowrap;
+  transition: background .2s;
+}
+.fit-add-btn:hover { background: #ffc04a; }
+
+.fit-tags { display: flex; flex-wrap: wrap; gap: 5px; min-height: 4px; }
+.fit-tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--mono); font-size: 11px;
+  padding: 3px 8px; border-radius: 3px;
+  border: 1px solid; white-space: nowrap;
+}
+.fit-tag-remove {
+  cursor: pointer; font-size: 13px; opacity: 0.7;
+  background: none; border: none; color: inherit;
+  padding: 0; line-height: 1;
+  transition: opacity .15s;
+}
+.fit-tag-remove:hover { opacity: 1; }
+
+.line-suc .fit-toggle-btn { border-color: rgba(41,121,255,0.3); }
+.line-suc .fit-toggle-btn:hover, .line-suc .fit-toggle-btn.has-fits { border-color: #2979FF; color: #6fa3ff; }
+.line-suc .fit-add-btn { background: #2979FF; }
+.line-suc .fit-add-btn:hover { background: #5599ff; }
+.line-suc .fit-tag { border-color: rgba(41,121,255,0.4); color: #6fa3ff; }
+
+.line-liq .fit-toggle-btn { border-color: rgba(61,186,128,0.3); }
+.line-liq .fit-toggle-btn:hover, .line-liq .fit-toggle-btn.has-fits { border-color: var(--success); color: var(--success); }
+.line-liq .fit-add-btn { background: var(--success); color: #000; }
+.line-liq .fit-add-btn:hover { background: #5dcfa0; }
+.line-liq .fit-tag { border-color: rgba(61,186,128,0.4); color: var(--success); }
+
+.line-dis .fit-toggle-btn { border-color: rgba(245,166,35,0.3); }
+.line-dis .fit-toggle-btn:hover, .line-dis .fit-toggle-btn.has-fits { border-color: var(--amber); color: var(--amber); }
+.line-dis .fit-add-btn { background: var(--amber); }
+.line-dis .fit-add-btn:hover { background: #ffc04a; }
+.line-dis .fit-tag { border-color: rgba(245,166,35,0.4); color: var(--amber); }
+
+/* Add circuit button */
+.add-circ-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 14px;
+  background: none; border: 1px dashed var(--border2);
+  color: var(--dim); cursor: pointer;
+  font-family: var(--cond); font-size: 13px; font-weight: 700;
+  letter-spacing: 1.5px; transition: all .2s; margin-bottom: 20px;
+}
+.add-circ-btn:hover { border-color: var(--blue); color: var(--blue); background: rgba(79,195,247,0.03); }
+
+/* Main Calc Button */
+.calc-all-btn {
+  width: 100%; padding: 15px; margin: 20px 0;
+  background: linear-gradient(135deg, #2979FF, #00E5FF); border: none; border-radius: 6px;
+  font-family: var(--cond); font-weight: bold; font-size: 1.2rem; cursor: pointer;
+  color: #000; text-transform: uppercase; letter-spacing: 1.5px;
+}
+.calc-all-btn:hover { filter: brightness(1.1); }
+.calc-all-btn:active { transform: scale(0.98); }
+
+/* ── RACK BLOCK ── */
+.rack-block {
+  margin: 0; padding: 14px 16px;
+  background: rgba(245,166,35,0.04);
+  border-bottom: 1px solid rgba(245,166,35,0.2);
+}
+.rack-block-title {
+  font-family: var(--cond); font-size: 11px; font-weight: 800;
+  letter-spacing: 1.5px; color: var(--amber); margin-bottom: 10px;
+}
+
+/* ── RESULTS PANEL ── */
+.no-results {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  text-align: center; color: var(--dim);
+  font-family: var(--cond); font-size: 14px; font-weight: 600;
+  letter-spacing: 1px; padding: 40px 20px;
+  line-height: 2;
+}
+
+.result-card {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  animation: fadeIn .2s ease;
+}
+.result-card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.result-circ-name {
+  font-family: var(--cond); font-size: 14px; font-weight: 700;
+  letter-spacing: 1px; color: var(--amber);
+}
+.result-status {
+  font-family: var(--mono); font-size: 10px; font-weight: 600;
+  padding: 2px 8px; border-radius: 3px; letter-spacing: 1px;
+}
+.status-ok   { background: rgba(61,186,128,0.15); color: var(--success); border: 1px solid rgba(61,186,128,0.3); }
+.status-warn { background: rgba(255,152,0,0.15);  color: var(--warn);    border: 1px solid rgba(255,152,0,0.3); }
+.status-fail { background: rgba(255,82,82,0.15);  color: var(--err);     border: 1px solid rgba(255,82,82,0.3); }
+
+.result-lines { display: flex; flex-direction: column; gap: 8px; }
+.result-line {
+  background: var(--surf); border: 1px solid var(--border);
+  border-radius: 4px; padding: 10px 12px;
+}
+.result-line-label {
+  font-family: var(--cond); font-size: 10px; font-weight: 700;
+  letter-spacing: 1.5px; color: var(--dim); margin-bottom: 5px;
+  text-transform: uppercase;
+}
+.result-pipe-size {
+  font-family: var(--mono); font-size: 18px; font-weight: 600;
+  color: var(--text); line-height: 1;
+  margin-bottom: 5px;
+}
+.result-metrics {
+  display: flex; gap: 12px; flex-wrap: wrap;
+}
+.result-metric {
+  display: flex; flex-direction: column; gap: 1px;
+}
+.result-metric-label {
+  font-family: var(--cond); font-size: 9px; font-weight: 700;
+  letter-spacing: 1px; color: var(--dim); text-transform: uppercase;
+}
+.result-metric-val {
+  font-family: var(--mono); font-size: 12px; font-weight: 500;
+  color: var(--text);
+}
+.result-metric-val.ok   { color: var(--success); }
+.result-metric-val.warn { color: var(--warn); }
+.result-metric-val.err  { color: var(--err); }
+
+.result-alerts { margin-top: 8px; display: flex; flex-direction: column; gap: 3px; }
+.result-alert {
+  font-size: 11px; padding: 3px 7px; border-radius: 3px;
+  line-height: 1.4;
+}
+.alert-ok   { background: rgba(61,186,128,0.1);  color: var(--success); }
+.alert-warn { background: rgba(255,152,0,0.1);   color: var(--warn); }
+.alert-err  { background: rgba(255,82,82,0.12);  color: var(--err); }
+
+.result-detail-btn {
+  margin-top: 10px; width: 100%;
+  background: none; border: 1px solid var(--border);
+  color: var(--dim); cursor: pointer;
+  font-family: var(--cond); font-size: 11px; font-weight: 700;
+  letter-spacing: 1px; padding: 6px; border-radius: 4px;
+  transition: all .2s;
+}
+.result-detail-btn:hover { border-color: var(--amber); color: var(--amber); }
+
+.result-fail-msg {
+  font-family: var(--mono); font-size: 12px;
+  color: var(--err); padding: 8px; text-align: center;
+}
+.result-na { color: var(--dim); font-family: var(--mono); font-size: 12px; }
+
+/* ── CONDENSER & ICE TABS ── */
+.simple-tab {
+  max-width: 520px; margin: 30px auto;
+  background: var(--surf); border: 1px solid var(--border);
+  border-radius: 8px; padding: 28px;
+}
+.simple-tab h3 {
+  font-family: var(--cond); font-size: 18px; font-weight: 800;
+  letter-spacing: 2px; color: var(--amber);
+  margin-bottom: 20px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.form-full { grid-column: span 2; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-label {
+  font-family: var(--cond); font-size: 10px; font-weight: 700;
+  letter-spacing: 1px; color: var(--blue); text-transform: uppercase;
+}
+.form-input {
+  background: var(--surf2); border: 1px solid var(--border);
+  color: var(--text); border-radius: 4px;
+  padding: 8px 10px; font-family: var(--mono); font-size: 13px;
+}
+.form-input:focus { border-color: var(--amber); outline: none; }
+.calc-btn {
+  width: 100%; padding: 12px;
+  background: var(--amber); border: none; border-radius: 5px;
+  font-family: var(--cond); font-size: 15px; font-weight: 800;
+  letter-spacing: 1.5px; color: #000; cursor: pointer;
+  transition: background .2s; margin-top: 6px;
+}
+.calc-btn:hover { background: #ffc04a; }
+.result-block { margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px; }
+.result-big {
+  font-family: var(--cond); font-size: 42px; font-weight: 800;
+  text-align: center; margin-bottom: 16px;
+}
+.kv-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 0; border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.kv-val { font-family: var(--mono); font-weight: 500; color: var(--text); }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeIn  { from { opacity:0; transform:translateY(4px) } to { opacity:1; transform:none } }
+@keyframes fadeDown{ from { opacity:0; transform:translateY(-4px)} to { opacity:1; transform:none } }
+
+/* ── MOBILE ── */
+@media (max-width: 768px) {
+  .topbar { flex-wrap: wrap; height: auto; padding: 8px 12px; gap: 8px; }
+  .main-nav { margin-left: 0; order: 3; width: 100%; }
+  .toolbar { order: 2; }
+  .two-col { grid-template-columns: 1fr; }
+  .results-panel {
+    position: static; height: auto;
+    border-top: 2px solid var(--amber);
+  }
+  .circuit-fields { grid-template-columns: 1fr 1fr; }
+  .form-grid { grid-template-columns: 1fr; }
+  .form-full { grid-column: span 1; }
+  .logo-name { font-size: 15px; }
+}
+@media (max-width: 480px) {
+  .circuit-fields { grid-template-columns: 1fr; }
+  .toolbar { flex-wrap: wrap; }
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="logo">
+    <div class="logo-hex">RS</div>
+    <span class="logo-name">REFRISYSTEM <span class="logo-ver">PRO v27</span></span>
+  </div>
+
+  <nav class="main-nav" id="mainNav">
+    <button class="active" data-tab="sizer"     onclick="RefriApp.switchMainTab('sizer',this)">PIPE SIZER</button>
+    <button              data-tab="condenser"  onclick="RefriApp.switchMainTab('condenser',this)">CONDENSER</button>
+    <button              data-tab="ice"        onclick="RefriApp.switchMainTab('ice',this)">ICE MACHINE</button>
+  </nav>
+
+  <div class="toolbar">
+    <button class="tool-btn" id="themeToggle" onclick="RefriApp.toggleTheme()">🌙 DARK</button>
+    <button class="tool-btn" onclick="RefriApp.exportBOMCSV()">📊 BOM CSV</button>
+    <button class="tool-btn" onclick="RefriApp.genPDF()">📄 REPORT</button>
+    <button class="tool-btn" onclick="RefriApp.saveProject()">⬇ SAVE</button>
+    <button class="tool-btn" onclick="document.getElementById('fileLoad').click()">⬆ LOAD</button>
+    <button class="tool-btn danger" onclick="RefriApp.resetProject()">↺ RESET</button>
+    <input type="file" id="fileLoad" style="display:none" accept=".json" onchange="RefriApp.loadProject(event)">
+  </div>
+</header>
+
+<div class="main-content">
+
+  <div id="tab-sizer" class="tab-content active">
+
+    <div class="params-strip" id="paramsStrip">
+      <div class="params-header" onclick="RefriApp.toggleParams()">
+        <span><span class="params-chevron">▶</span> SYSTEM PARAMETERS</span>
+        <span id="paramsSummary" class="params-summary"></span>
+      </div>
+      <div class="params-body" id="paramsBody">
+        <div class="params-grid">
+          <div class="p-group">
+            <label>APPLICATION</label>
+            <select id="pApp" onchange="RefriApp.updateSystemArch()">
+              <option value="ref">Refrigeration</option>
+              <option value="ac">Air Conditioning</option>
+            </select>
+          </div>
+          <div class="p-group">
+            <label>TOPOLOGY</label>
+            <select id="pTopo" onchange="RefriApp.updateSystemArch()"></select>
+          </div>
+          <div class="p-group">
+            <label>REFRIGERANT</label>
+            <select id="pRef" onchange="RefriApp.onRefChange()"></select>
+            <span id="refSafetyBadge" class="safety-badge safety-A1">A1 — Non-Flammable</span>
+          </div>
+          <div class="p-group">
+            <label>PIPE STANDARD</label>
+            <select id="pStd" onchange="RefriApp.scheduleCalc()">
+              <option value="acr">ACR Copper (OD-based)</option>
+              <option value="sch40">SCH 40 Steel (ANSI B36.10M)</option>
+            </select>
+          </div>
+          <div class="p-group">
+            <label>EVAP TEMP (°C)</label>
+            <input type="number" id="pEvap" value="-10" oninput="RefriApp.scheduleCalc(); RefriApp.updateParamsSummary()">
+          </div>
+          <div class="p-group">
+            <label>COND TEMP (°C)</label>
+            <input type="number" id="pCond" value="45" oninput="RefriApp.scheduleCalc(); RefriApp.updateParamsSummary()">
+          </div>
+          <div class="p-group">
+            <label>SUPERHEAT (K)</label>
+            <input type="number" id="pSH" value="8" oninput="RefriApp.scheduleCalc()">
+          </div>
+          <div class="p-group">
+            <label>SUBCOOLING (K)</label>
+            <input type="number" id="pSC" value="3" oninput="RefriApp.scheduleCalc()">
+          </div>
+          <div class="p-group" id="groupPartLoad">
+            <label>MIN PART LOAD (%)</label>
+            <input type="number" id="pPart" value="25" min="10" max="100" oninput="RefriApp.scheduleCalc()">
+          </div>
+          <div class="p-group" id="groupLiqGain">
+            <label>LIQ HEAT GAIN (K)</label>
+            <input type="number" id="pLiqGain" value="0" min="0" oninput="RefriApp.scheduleCalc()">
+          </div>
+          <div class="p-group">
+            <label>CONDENSER POSITION</label>
+            <div class="loc-toggle">
+              <div id="locHigh" class="loc-opt active" onclick="RefriApp.setLoc('higher')">HIGHER</div>
+              <div id="locLow"  class="loc-opt"        onclick="RefriApp.setLoc('lower')">LOWER</div>
+            </div>
+          </div>
+          <div class="p-group">
+            <label>PROJECT NAME</label>
+            <input type="text" id="pName" placeholder="Project name" oninput="RefriApp.updateParamsSummary()">
+          </div>
+          <div class="p-group">
+            <label>PREPARED BY</label>
+            <input type="text" id="pPrep" placeholder="Engineer name">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="xcheckBanner" class="xcheck-alert" style="margin:8px 20px 0;"></div>
+
+    <div id="rackFields" class="rack-block" style="display:none">
+      <div class="rack-block-title">▲ MAIN RACK → REMOTE CONDENSER PIPING</div>
+      <div class="params-grid">
+        <div class="p-group">
+          <label>TOTAL RACK LOAD (kW)</label>
+          <input type="number" id="rLoad" value="0" oninput="RefriApp.scheduleCalc()">
+        </div>
+        <div class="p-group">
+          <label>DISCHARGE LENGTH (m)</label>
+          <input type="number" id="rDisLen" value="0" oninput="RefriApp.scheduleCalc()">
+        </div>
+        <div class="p-group">
+          <label>DISCHARGE RISE (m)</label>
+          <input type="number" id="rDisRise" value="0" oninput="RefriApp.scheduleCalc()">
+        </div>
+        <div class="p-group">
+          <label>LIQUID DROP-LEG LEN (m)</label>
+          <input type="number" id="rLiqLen" value="0" oninput="RefriApp.scheduleCalc()">
+        </div>
+        <div class="p-group">
+          <label>LIQUID DROP-LEG RISE (m)</label>
+          <input type="number" id="rLiqRise" value="0" oninput="RefriApp.scheduleCalc()">
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
+        <div class="fit-line line-dis">
+          <button class="fit-toggle-btn" id="rackDisToggle" onclick="RefriApp.toggleFitBody('rackDis')">
+            <span>DISCHARGE FITTINGS</span>
+            <span id="rackDisCount" class="fit-count-badge" style="display:none">0</span>
+            <span class="fit-arrow">▼</span>
+          </button>
+          <div class="fit-body" id="rackDis-body">
+            <div class="fit-add-row">
+              <select id="fitType_rackDis" class="fit-options-dynamic"></select>
+              <input type="number" id="fitQty_rackDis" value="1" min="1">
+              <button class="fit-add-btn" onclick="RefriApp.addRackFitting('rackDis')">ADD</button>
+            </div>
+            <div class="fit-tags" id="rackDis-tags"></div>
+          </div>
+        </div>
+        <div class="fit-line line-liq">
+          <button class="fit-toggle-btn" id="rackLiqToggle" onclick="RefriApp.toggleFitBody('rackLiq')">
+            <span>DROP-LEG FITTINGS</span>
+            <span id="rackLiqCount" class="fit-count-badge" style="display:none">0</span>
+            <span class="fit-arrow">▼</span>
+          </button>
+          <div class="fit-body" id="rackLiq-body">
+            <div class="fit-add-row">
+              <select id="fitType_rackLiq" class="fit-options-dynamic"></select>
+              <input type="number" id="fitQty_rackLiq" value="1" min="1">
+              <button class="fit-add-btn line-liq" style="background:var(--success);color:#000" onclick="RefriApp.addRackFitting('rackLiq')">ADD</button>
+            </div>
+            <div class="fit-tags" id="rackLiq-tags"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="two-col">
+
+      <div class="circuits-panel">
+        <div class="panel-hdr">
+          <span class="panel-hdr-title">CIRCUITS</span>
+        </div>
+        <div id="circuitsContainer"></div>
+        <button class="add-circ-btn" onclick="RefriApp.addCircuit()">＋  ADD CIRCUIT</button>
+      </div>
+
+      <div class="results-panel">
+        <div class="panel-hdr">
+          <span class="panel-hdr-title">LIVE RESULTS</span>
+        </div>
+        <div id="resultsContainer" style="flex:1">
+          <div class="no-results">Configure circuits on the left.<br>Results update automatically.</div>
+        </div>
+      </div>
+
+    </div></div><div id="tab-condenser" class="tab-content">
+    <div class="simple-tab">
+      <h3>CONDENSER CAPACITY CHECK</h3>
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">EVAP LOAD (kW)</label><input class="form-input" type="number" id="cLoad"></div>
+        <div class="form-group"><label class="form-label">COMP POWER (kW)</label><input class="form-input" type="number" id="cPower" placeholder="Optional (≈45% of load)"></div>
+        <div class="form-group"><label class="form-label">AMBIENT TEMP (°C)</label><input class="form-input" type="number" id="cAmb" value="46"></div>
+        <div class="form-group"><label class="form-label">TARGET COND TEMP (°C)</label><input class="form-input" type="number" id="cTarg" value="55"></div>
+        <div class="form-group form-full"><label class="form-label">RATED CAPACITY @ 15K TD (kW)</label><input class="form-input" type="number" id="cRated"></div>
+      </div>
+      <button class="calc-btn" onclick="RefriApp.calcCond()">CHECK CAPACITY</button>
+      <div class="result-block" id="resCond" style="display:none">
+        <div class="result-big" id="cStatus">--</div>
+        <div class="kv-row"><span>Total Heat Rejection</span><span class="kv-val" id="cTHR">--</span></div>
+        <div class="kv-row"><span>Actual Capacity (corrected)</span><span class="kv-val" id="cAct">--</span></div>
+        <div class="kv-row"><span>Margin</span><span class="kv-val" id="cMarg">--</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-ice" class="tab-content">
+    <div class="simple-tab">
+      <h3>ICE MACHINE LOAD ESTIMATOR</h3>
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">QUANTITY (PER 24H)</label><input class="form-input" type="number" id="iQty"></div>
+        <div class="form-group"><label class="form-label">UNIT</label>
+          <select class="form-input" id="iUnit"><option value="tons">Metric Tons (1000 kg)</option><option value="kg">Kg</option></select>
+        </div>
+        <div class="form-group"><label class="form-label">INLET WATER TEMP (°C)</label><input class="form-input" type="number" id="iWater" value="25"></div>
+        <div class="form-group"><label class="form-label">AMBIENT TEMP (°C)</label><input class="form-input" type="number" id="iAmb" value="40"></div>
+        <div class="form-group form-full"><label class="form-label">ICE TYPE</label>
+          <select class="form-input" id="iType">
+            <option value="flake">Flake Ice (Continuous)</option>
+            <option value="cube">Cube / Tube Ice (Batch/Defrost)</option>
+            <option value="block">Block Ice (Brine Tank)</option>
+          </select>
+        </div>
+      </div>
+      <button class="calc-btn" onclick="RefriApp.calcIce()">CALCULATE LOAD</button>
+      <div class="result-block" id="resIce" style="display:none">
+        <label style="text-align:center; display:block; color:var(--primary); font-weight:bold; margin-bottom: 5px;">REQUIRED REFRIGERATION CAPACITY</label>
+        <div class="result-big" id="iCap" style="color:var(--amber)">--</div>
+        <div class="kv-row"><span>Water Consumption</span><span class="kv-val" id="iWReq">--</span></div>
+        <div class="kv-row"><span>Supply Pipe Size</span><span class="kv-val" id="iWPipe">--</span></div>
+        <div class="kv-row"><span>Est. Compressor Power</span><span class="kv-val" id="iCompElec">--</span></div>
+        <div class="kv-row"><span>Daily Energy Use</span><span class="kv-val" id="iElec">--</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  GLOBAL APPLICATION NAMESPACE & PHYSICS ENGINE
+// ═══════════════════════════════════════════════════════════════
+const RefriApp = {
+    loc: 'higher',
+    circuits: [],
+    calcResults: [], 
+    rackDisFits: [],
+    rackLiqFits: [],
+    circuitCounter: 1,
+    calcTimer: null,
+    
+    fittingData: {
+        "std90": { n: "90° Standard Elbow", ld: 30 }, "lr90": { n: "90° Long Radius Elbow", ld: 20 },
+        "st90": { n: "90° Street Elbow", ld: 50 }, "std45": { n: "45° Standard Elbow", ld: 16 },
+        "st45": { n: "45° Street Elbow", ld: 26 }, "ret180": { n: "180° Return Bend", ld: 50 },
+        "teeStr": { n: "Tee (Straight Through)", ld: 20 }, "teeBrn": { n: "Tee (Branch Flow)", ld: 60 },
+        "globe": { n: "Globe Valve (Open)", ld: 340 }, "angle": { n: "Angle Valve (Open)", ld: 150 },
+        "gate": { n: "Gate Valve (Open)", ld: 13 }, "ball": { n: "Ball Valve (Open)", ld: 3 },
+        "check": { n: "Swing Check Valve", ld: 135 }, "liftCheck": { n: "Lift Check Valve", ld: 600 },
+        "genCheck": { n: "Check Valve (Generic)", ld: 135 },
+        "solenoid": { n: "Solenoid Valve", ld: 300 }, "filter": { n: "Filter Drier", ld: 400 },
+        "txv": { n: "Thermostatic Expansion Valve", ld: 300 },
+        "sight": { n: "Sight Glass", ld: 20 },
+        "pTrap": { n: "P-Trap (Oil Return)", ld: 90 },
+        "sTrap": { n: "S-Trap", ld: 150 },
+        "invTrap": { n: "Inverted Trap (Loop)", ld: 90 },
+        "refY": { n: "VRF Refnet Y-Joint", ld: 20 },
+        "refH": { n: "VRF Refnet Header", ld: 40 }
+    },
+
+    // True K-Ratios applied
+    refData: {
+        "R404A": { dH: 105, lRho: 980, R_gas: 85.18, antoine: [4.26, 872, 250], mu_vap: 1.2e-5, mu_liq: 1.4e-4, k_ratio: 1.11, safety:'A1' },
+        "R448A": { dH: 140, lRho: 1050, R_gas: 96.34, antoine: [4.41, 930, 250], mu_vap: 1.2e-5, mu_liq: 1.4e-4, k_ratio: 1.12, safety:'A1' },
+        "R410A": { dH: 170, lRho: 1000, R_gas: 114.52, antoine: [4.74, 975, 250], mu_vap: 1.3e-5, mu_liq: 1.2e-4, k_ratio: 1.14, safety:'A1' },
+        "R134a": { dH: 145, lRho: 1150, R_gas: 81.51, antoine: [4.38, 981, 250], mu_vap: 1.1e-5, mu_liq: 1.8e-4, k_ratio: 1.12, safety:'A1' },
+        "R22":   { dH: 155, lRho: 1130, R_gas: 96.12, antoine: [4.26, 893, 250], mu_vap: 1.2e-5, mu_liq: 1.6e-4, k_ratio: 1.18, safety:'A1' },
+        "R452B": { dH: 160, lRho: 980, R_gas: 122.0, antoine: [4.7, 980, 250], mu_vap: 1.3e-5, mu_liq: 1.2e-4, k_ratio: 1.15, safety:'A2L' },
+        "R454C": { dH: 150, lRho: 1000, R_gas: 110.0, antoine: [4.3, 890, 250], mu_vap: 1.2e-5, mu_liq: 1.3e-4, k_ratio: 1.14, safety:'A2L' },
+        "R32":   { dH: 260, lRho: 960, R_gas: 159.8, antoine: [4.7, 980, 250], mu_vap: 1.3e-5, mu_liq: 1.1e-4, k_ratio: 1.20, safety:'A2L' },
+        "R600a": { dH: 330, lRho: 550, R_gas: 143.0, antoine: [4.0, 900, 240], mu_vap: 0.7e-5, mu_liq: 1.5e-4, k_ratio: 1.11, safety:'A3' }
+    },
+
+    pipes: [
+        { n: '3/8"', d: 7.9, lbl: '9.5mm (3/8")' }, { n: '1/2"', d: 11.1, lbl: '12.7mm (1/2")' },
+        { n: '5/8"', d: 14.3, lbl: '15.9mm (5/8")' }, { n: '3/4"', d: 17.5, lbl: '19.1mm (3/4")' },
+        { n: '7/8"', d: 20.6, lbl: '22.2mm (7/8")' }, { n: '1-1/8"', d: 26.9, lbl: '28.6mm (1-1/8")' },
+        { n: '1-3/8"', d: 33.3, lbl: '34.9mm (1-3/8")' }, { n: '1-5/8"', d: 39.6, lbl: '41.3mm (1-5/8")' },
+        { n: '2-1/8"', d: 52.3, lbl: '54.0mm (2-1/8")' }, { n: '2-5/8"', d: 65.0, lbl: '66.7mm (2-5/8")' },
+        { n: '3-1/8"', d: 77.7, lbl: '79.4mm (3-1/8")' }, { n: '4-1/8"', d: 103.0, lbl: '104.8mm (4-1/8")' }
+    ],
+
+    // True internal diameters applied
+    pipesSch40: [
+        { n: '1/4" NPS', d: 9.2, lbl: '13.7mm OD (1/4" SCH40)' }, { n: '3/8" NPS', d: 12.5, lbl: '17.1mm OD (3/8" SCH40)' },
+        { n: '1/2" NPS', d: 15.8, lbl: '21.3mm OD (1/2" SCH40)' }, { n: '3/4" NPS', d: 20.9, lbl: '26.7mm OD (3/4" SCH40)' },
+        { n: '1" NPS', d: 26.6, lbl: '33.4mm OD (1" SCH40)' }, { n: '1-1/4" NPS', d: 35.1, lbl: '42.2mm OD (1-1/4" SCH40)' },
+        { n: '1-1/2" NPS', d: 40.9, lbl: '48.3mm OD (1-1/2" SCH40)' }, { n: '2" NPS', d: 52.5, lbl: '60.3mm OD (2" SCH40)' },
+        { n: '2-1/2" NPS', d: 62.7, lbl: '73.0mm OD (2-1/2" SCH40)' }, { n: '3" NPS', d: 77.9, lbl: '88.9mm OD (3" SCH40)' },
+        { n: '4" NPS', d: 102.3, lbl: '114.3mm OD (4" SCH40)' }
+    ],
+
+    getSatPressurePsi: function(ref, T_celsius) {
+        let a = this.refData[ref].antoine;
+        return Math.pow(10, a[0] - (a[1] / (T_celsius + a[2]))) * 14.5038;
+    },
+
+    toggleTheme: function() {
+        let isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        if (isDark) {
+            document.documentElement.removeAttribute('data-theme');
+            document.getElementById('themeToggle').textContent = '🌙 DARK';
+        } else {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            document.getElementById('themeToggle').textContent = '☀ LIGHT';
+        }
+    },
+
+    switchMainTab: function(tab, btn) {
+        document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.main-nav button').forEach(el => el.classList.remove('active'));
+        document.getElementById('tab-'+tab).classList.add('active');
+        btn.classList.add('active');
+    },
+
+    toggleParams: function() {
+        document.getElementById('paramsStrip').classList.toggle('open');
+    },
+
+    updateParamsSummary: function() {
+        let ref  = (document.getElementById('pRef')  || {}).value || '';
+        let evap = (document.getElementById('pEvap') || {}).value || '';
+        let cond = (document.getElementById('pCond') || {}).value || '';
+        let name = (document.getElementById('pName') || {}).value || '';
+        let txt  = [ref, evap+'°C evap', cond+'°C cond', name].filter(Boolean).join('  ·  ');
+        let el = document.getElementById('paramsSummary');
+        if (el) el.textContent = txt;
+    },
+
+    setLoc: function(val) {
+        this.loc = val;
+        document.getElementById('locHigh').classList.toggle('active', val==='higher');
+        document.getElementById('locLow').classList.toggle('active',  val==='lower');
+        this.scheduleCalc();
+    },
+
+    onRefChange: function() {
+        let ref = document.getElementById('pRef').value;
+        let r   = this.refData[ref];
+        if (!r) return;
+        let badge = document.getElementById('refSafetyBadge');
+        badge.className = 'safety-badge safety-' + r.safety;
+        let labels = { A1:'A1 — Non-Flammable', A2L:'A2L — Mildly Flammable', A3:'A3 — Highly Flammable' };
+        badge.textContent = labels[r.safety] || r.safety;
+        this.updateFittingOptions();
+        this.updateParamsSummary();
+        this.scheduleCalc();
+    },
+
+    updateSystemArch: function() {
+        let app  = document.getElementById('pApp').value;
+        let topo = document.getElementById('pTopo');
+        let ref  = document.getElementById('pRef');
+        let curTopo = topo.value, curRef = ref.value;
+
+        if (app === 'ref') {
+            topo.innerHTML =
+                '<option value="rack">Parallel rack with remote air cooled condenser</option>' +
+                '<option value="integrated">Integrated rack with condenser and compressor rack on single body</option>' +
+                '<option value="remote">Remote condensing unit for smaller loads</option>';
+            ref.innerHTML =
+                '<option value="R404A">R404A</option>' +
+                '<option value="R448A">R448A</option>' +
+                '<option value="R452B">R452B</option>' +
+                '<option value="R454C">R454C</option>' +
+                '<option value="R134a">R134a</option>' +
+                '<option value="R22">R22</option>' +
+                '<option value="R600a">R600a</option>';
+            if (['R404A','R448A','R452B','R454C','R134a','R600a','R22'].includes(curRef)) ref.value = curRef;
+            else ref.value = 'R404A';
+            if (['rack','integrated','remote'].includes(curTopo)) topo.value = curTopo;
+            
+            if (document.getElementById('groupPartLoad')) document.getElementById('groupPartLoad').style.display = '';
+            if (document.getElementById('groupLiqGain')) document.getElementById('groupLiqGain').style.display = '';
+            
+        } else {
+            topo.innerHTML =
+                '<option value="vrf">VRF</option>' +
+                '<option value="split">DX split FCU with remote CDU</option>';
+            ref.innerHTML =
+                '<option value="R410A">R410A</option>' +
+                '<option value="R32">R32</option>';
+            if (['R410A','R32'].includes(curRef)) ref.value = curRef;
+            else ref.value = 'R410A';
+            if (['vrf','split'].includes(curTopo)) topo.value = curTopo;
+            
+            if (document.getElementById('groupPartLoad')) document.getElementById('groupPartLoad').style.display = 'none';
+            if (document.getElementById('groupLiqGain')) document.getElementById('groupLiqGain').style.display = 'none';
+        }
+
+        let isRack = (app==='ref' && topo.value==='rack');
+        document.getElementById('rackFields').style.display = isRack ? 'block' : 'none';
+
+        this.onRefChange();
+        this.renderCircuits();
+        this.scheduleCalc();
+    },
+
+    updateFittingOptions: function() {
+        let curRef = document.getElementById('pRef').value;
+        let opts = Object.keys(this.fittingData)
+            .filter(k => (k==='refY'||k==='refH') ? ['R410A','R32'].includes(curRef) : true)
+            .map(k => `<option value="${k}">${this.fittingData[k].n}</option>`).join('');
+        document.querySelectorAll('.fit-options-dynamic').forEach(el => el.innerHTML = opts);
+    },
+
+    toggleFitBody: function(key) {
+        let body = document.getElementById(key+'-body');
+        let btn  = document.getElementById(key+'Toggle') || document.getElementById('fitToggle_'+key);
+        if (!body) return;
+        let open = body.classList.toggle('open');
+        if (btn) btn.classList.toggle('open', open);
+    },
+
+    addRackFitting: function(line) {
+        let typeId = 'fitType_' + line;
+        let qtyId = 'fitQty_' + line;
+        let type = document.getElementById(typeId).value;
+        let qty = parseInt(document.getElementById(qtyId).value, 10);
+        if(!isNaN(qty) && qty > 0) {
+            if (line === 'rackDis') this.rackDisFits.push({ id: type, qty: qty, name: this.fittingData[type].n });
+            else this.rackLiqFits.push({ id: type, qty: qty, name: this.fittingData[type].n });
+            this.renderRackFittings();
+            this.scheduleCalc();
+        }
+    },
+
+    removeRackFitting: function(line, index) {
+        if (line === 'rackDis') this.rackDisFits.splice(index, 1);
+        else this.rackLiqFits.splice(index, 1);
+        this.renderRackFittings();
+        this.scheduleCalc();
+    },
+
+    renderRackFittings: function() {
+        let disHtml = "";
+        this.rackDisFits.forEach((f, i) => {
+            disHtml += `<div class="fit-tag" style="border-color:#FF9100; color:#FF9100">${f.qty}× ${f.name} <button class="fit-tag-remove" onclick="RefriApp.removeRackFitting('rackDis', ${i})">✕</button></div>`;
+        });
+        document.getElementById('rackDis-tags').innerHTML = disHtml;
+        let disN = this.rackDisFits.reduce((s,f) => s + f.qty, 0);
+        document.getElementById('rackDisCount').textContent = disN;
+        document.getElementById('rackDisCount').style.display = disN > 0 ? 'inline' : 'none';
+
+        let liqHtml = "";
+        this.rackLiqFits.forEach((f, i) => {
+            liqHtml += `<div class="fit-tag" style="border-color:#00C853; color:#00C853">${f.qty}× ${f.name} <button class="fit-tag-remove" onclick="RefriApp.removeRackFitting('rackLiq', ${i})">✕</button></div>`;
+        });
+        document.getElementById('rackLiq-tags').innerHTML = liqHtml;
+        let liqN = this.rackLiqFits.reduce((s,f) => s + f.qty, 0);
+        document.getElementById('rackLiqCount').textContent = liqN;
+        document.getElementById('rackLiqCount').style.display = liqN > 0 ? 'inline' : 'none';
+    },
+
+    addCircuit: function(data = null) {
+        let id = this.circuitCounter++;
+        let c = data || { id: id, name: 'Circuit ' + (this.circuits.length + 1), from: '', to: '', load: '', len: '', rise: 0, fittings: [] };
+        this.circuits.push(c);
+        this.renderCircuits();
+    },
+
+    removeCircuit: function(id) {
+        this.circuits = this.circuits.filter(c => c.id !== id);
+        this.renderCircuits();
+        this.scheduleCalc();
+    },
+
+    updateCircuit: function(id, field, value) {
+        let c = this.circuits.find(c => c.id === id);
+        if(c) { c[field] = value; this.scheduleCalc(); }
+    },
+
+    addCircFitting: function(cId, line) {
+        let c = this.circuits.find(c => c.id === cId);
+        if(!c) return;
+        let type = document.getElementById('fitType_'+line+'_'+cId).value;
+        let qty  = parseInt(document.getElementById('fitQty_'+line+'_'+cId).value, 10);
+        if(!isNaN(qty) && qty > 0) {
+            c.fittings.push({ line: line, id: type, qty: qty, name: this.fittingData[type].n });
+            this.renderCircuits();
+            this.scheduleCalc();
+        }
+    },
+
+    removeCircFitting: function(cId, fIndex) {
+        let c = this.circuits.find(c => c.id === cId);
+        if(c) { c.fittings.splice(fIndex, 1); this.renderCircuits(); this.scheduleCalc(); }
+    },
+
+    renderCircuits: function() {
+        this.updateFittingOptions();
+        let currentRef = document.getElementById('pRef').value;
+        let options = Object.keys(this.fittingData).filter(k => {
+            if ((k === 'refY' || k === 'refH') && currentRef !== 'R410A' && currentRef !== 'R32') return false;
+            return true;
+        }).map(k => `<option value="${k}">${this.fittingData[k].n}</option>`).join('');
+        
+        document.querySelectorAll('.fit-options-dynamic').forEach(el => el.innerHTML = options);
+        this.renderRackFittings();
+
+        let html = "";
+        
+        this.circuits.forEach((c, index) => {
+            let sucFitsHtml = "";
+            let liqFitsHtml = "";
+            let sCount = 0; let lCount = 0;
+            
+            c.fittings.forEach((f, i) => {
+                if(f.line === 'suction') {
+                    sCount += f.qty;
+                    sucFitsHtml += `<div class="fit-tag" style="border-color:rgba(41,121,255,0.4); color:#6fa3ff">${f.qty}× ${f.name} <button class="fit-tag-remove" onclick="RefriApp.removeCircFitting(${c.id}, ${i})">✕</button></div>`;
+                } else {
+                    lCount += f.qty;
+                    liqFitsHtml += `<div class="fit-tag" style="border-color:rgba(61,186,128,0.4); color:var(--success)">${f.qty}× ${f.name} <button class="fit-tag-remove" onclick="RefriApp.removeCircFitting(${c.id}, ${i})">✕</button></div>`;
+                }
+            });
+
+            html += `
+            <div class="circuit-card">
+              <div class="circuit-top">
+                <input class="circuit-name-input" type="text" value="${c.name}" onchange="RefriApp.updateCircuit(${c.id}, 'name', this.value)">
+                ${index > 0 ? `<button class="circuit-del-btn" onclick="RefriApp.removeCircuit(${c.id})" title="Remove circuit">✕</button>` : ''}
+              </div>
+              <div class="circuit-fields">
+                <div class="field-group">
+                  <div class="field-label">FROM</div>
+                  <input class="field-input" type="text" value="${c.from}" placeholder="e.g. Rack" onchange="RefriApp.updateCircuit(${c.id}, 'from', this.value)">
+                </div>
+                <div class="field-group">
+                  <div class="field-label">TO</div>
+                  <input class="field-input" type="text" value="${c.to}" placeholder="e.g. Evap A" onchange="RefriApp.updateCircuit(${c.id}, 'to', this.value)">
+                </div>
+                <div class="field-group">
+                  <div class="field-label">LOAD (kW)</div>
+                  <input class="field-input" type="number" value="${isNaN(c.load)?'':c.load}" placeholder="0.0" oninput="RefriApp.updateCircuit(${c.id}, 'load', parseFloat(this.value))">
+                </div>
+                <div class="field-group">
+                  <div class="field-label">LENGTH (m)</div>
+                  <input class="field-input" type="number" value="${isNaN(c.len)?'':c.len}" placeholder="0.0" oninput="RefriApp.updateCircuit(${c.id}, 'len', parseFloat(this.value))">
+                </div>
+                <div class="field-group">
+                  <div class="field-label">VERT. RISE (m)</div>
+                  <input class="field-input" type="number" value="${isNaN(c.rise)?'':c.rise}" placeholder="0" oninput="RefriApp.updateCircuit(${c.id}, 'rise', parseFloat(this.value)||0)">
+                </div>
+                <div class="field-group"></div>
+              </div>
+              <div class="fittings-section">
+                <div class="fit-line line-suc">
+                  <button class="fit-toggle-btn ${sCount>0?'has-fits':''}" id="fitToggle_suction_${c.id}" onclick="RefriApp.toggleFitBody('fit_suction_${c.id}')">
+                    <span>SUCTION FITTINGS</span>
+                    <span class="fit-count-badge" style="display:${sCount>0?'inline':'none'}">${sCount}</span>
+                    <span class="fit-arrow">▼</span>
+                  </button>
+                  <div class="fit-body" id="fit_suction_${c.id}-body">
+                    <div class="fit-add-row">
+                      <select id="fitType_suction_${c.id}" class="fit-options-dynamic">${options}</select>
+                      <input type="number" id="fitQty_suction_${c.id}" value="1" min="1">
+                      <button class="fit-add-btn" style="background:#2979FF;color:#fff" onclick="RefriApp.addCircFitting(${c.id}, 'suction')">ADD</button>
+                    </div>
+                    <div class="fit-tags">${sucFitsHtml}</div>
+                  </div>
+                </div>
+                <div class="fit-line line-liq">
+                  <button class="fit-toggle-btn ${lCount>0?'has-fits':''}" id="fitToggle_liquid_${c.id}" onclick="RefriApp.toggleFitBody('fit_liquid_${c.id}')">
+                    <span>LIQUID FITTINGS</span>
+                    <span class="fit-count-badge" style="display:${lCount>0?'inline':'none'}">${lCount}</span>
+                    <span class="fit-arrow">▼</span>
+                  </button>
+                  <div class="fit-body" id="fit_liquid_${c.id}-body">
+                    <div class="fit-add-row">
+                      <select id="fitType_liquid_${c.id}" class="fit-options-dynamic">${options}</select>
+                      <input type="number" id="fitQty_liquid_${c.id}" value="1" min="1">
+                      <button class="fit-add-btn" style="background:var(--success);color:#000" onclick="RefriApp.addCircFitting(${c.id}, 'liquid')">ADD</button>
+                    </div>
+                    <div class="fit-tags">${liqFitsHtml}</div>
+                  </div>
+                </div>
+              </div>
+            </div>`;
+        });
+        document.getElementById('circuitsContainer').innerHTML = html;
+    },
+
+    // --- PHYSICS ENGINE ---
+    calculateLine: function(type, load, len, rise, isCondHigher, fittings, ref, pipeStd, evap, cond, sh, sc, partLoadPct, liqGain) {
+        if (!load || load <= 0) return null;
+        let r = this.refData[ref];
+        let dH = r.dH - 0.5 * (cond - 45) + (sc * 1.3);
+        if (dH <= 0) dH = 100;
+        let m_dot = load / dH;
+
+        let partLoadRatio = (partLoadPct || 25) / 100.0;
+        let rho = 0;
+        let mu = 0;
+        let calcTempC = null; 
+        
+        if (type === 'liquid') {
+            rho = r.lRho;
+            mu = r.mu_liq;
+        } else {
+            let p_pa = this.getSatPressurePsi(ref, evap) * 6894.76;
+            let temp_K = evap + 273.15 + sh;
+            rho = p_pa / (r.R_gas * temp_K);
+            
+            // --- ACTUAL ISENTROPIC COMPRESSION THERMODYNAMICS ---
+            if (type === 'discharge') {
+                let p2_pa = this.getSatPressurePsi(ref, cond) * 6894.76;
+                let k_ratio = r.k_ratio; 
+                let t2s_k = temp_K * Math.pow(p2_pa / p_pa, (k_ratio - 1) / k_ratio); 
+                let t2_actual_k = temp_K + (t2s_k - temp_K) / 0.80; 
+                rho = p2_pa / (r.R_gas * t2_actual_k); 
+                calcTempC = t2_actual_k - 273.15; 
+            }
+            mu = r.mu_vap;
+        }
+
+        let dir = "UP"; 
+        if(type === 'liquid') dir = isCondHigher ? "DOWN" : "UP";
+        else dir = isCondHigher ? "UP" : "DOWN"; 
+
+        let staticPsi = (rho * 9.81 * rise) * 0.000145;
+
+        let dynMaxDP = 3.0; 
+        let dP_dT = 1.0;
+        let dynMaxDP_suc = this.getSatPressurePsi(ref, evap) - this.getSatPressurePsi(ref, evap - 2);
+        
+        if (type === 'suction') {
+            dP_dT = this.getSatPressurePsi(ref, evap + 0.5) - this.getSatPressurePsi(ref, evap - 0.5);
+            dynMaxDP = dynMaxDP_suc; 
+        } else {
+            dP_dT = this.getSatPressurePsi(ref, cond + 0.5) - this.getSatPressurePsi(ref, cond - 0.5);
+            dynMaxDP = this.getSatPressurePsi(ref, cond) - this.getSatPressurePsi(ref, cond - 1);
+        }
+
+        let maxVel = (type === 'liquid') ? 2.5 : 18;
+        let results = [];
+        let pipeList = (pipeStd === 'sch40') ? this.pipesSch40 : this.pipes;
+
+        pipeList.forEach(p => {
+            let actualID_mm = p.d;
+            let pipeInnerD_m = actualID_mm / 1000;
+            let A = Math.PI * Math.pow(pipeInnerD_m / 2, 2);
+            let v = m_dot / (rho * A);
+            
+            let Re = (rho * v * pipeInnerD_m) / mu;
+            let f_dyn = 0.012; 
+            
+            if (Re > 0) {
+                if (Re < 100000) { f_dyn = 0.3164 * Math.pow(Re, -0.25); } 
+                else { f_dyn = Math.pow(-1.8 * Math.log10(6.9 / Re), -2); }
+            }
+            
+            let fittingLeq = 0;
+            fittings.forEach(f => {
+                if(this.fittingData[f.id]) fittingLeq += (this.fittingData[f.id].ld * pipeInnerD_m) * f.qty;
+            });
+            let eqLen = len + fittingLeq;
+            
+            let dp = (f_dyn * eqLen * rho * Math.pow(v, 2)) / (2 * pipeInnerD_m) * 0.000145;
+            let dp_temp = dp / dP_dT;
+            
+            let st = "OK";
+            let flashTempDrop = 0;
+            let effective_sc = sc - (liqGain || 0);
+            
+            if (type === 'liquid') {
+                flashTempDrop = (dir === "UP") ? (dp + staticPsi) / dP_dT : Math.max(0, (dp - staticPsi) / dP_dT);
+            }
+
+            if(v > maxVel) st = "High Vel";
+            else if(type === 'liquid' && flashTempDrop > effective_sc) st = "Flash Gas"; 
+            else if(dp > dynMaxDP) st = "High PD";
+            else if(type === 'suction') {
+                if (v < 4.0) st = "Low Vel"; 
+                else if (dir === "UP" && v < 5.0) st = "Low Vel";
+            }
+            else if (type === 'discharge') {
+                if (v < 2.5) st = "Low Vel"; 
+                else if (dir === "UP" && v < 5.0) st = "Low Vel";
+            }
+            else if (type === 'liquid') {
+                if (v < 0.4) st = "Oversized";
+            }
+
+            results.push({ pipe: p, v: v, dp: dp, dp_temp: dp_temp, d: actualID_mm, rho: rho, maxDP: dynMaxDP, st: st, flash: flashTempDrop });
+        });
+
+        let validPipes = results.filter(r => r.st === "OK");
+        let fallbackUsed = false;
+
+        if (validPipes.length === 0) {
+            validPipes = results.filter(r => r.st === "Low Vel" || r.st === "Oversized"); 
+            fallbackUsed = true;
+        }
+        if (validPipes.length === 0) {
+            validPipes = results.filter(r => r.st === "Flash Gas"); 
+            fallbackUsed = false; 
+        }
+        
+        if (type === 'liquid') {
+            if (fallbackUsed) { validPipes.sort((a, b) => b.v - a.v); } 
+            else {
+                validPipes.sort((a, b) => {
+                    let aIdeal = a.v < 2.0 ? 0 : 1; let bIdeal = b.v < 2.0 ? 0 : 1;
+                    if (aIdeal !== bIdeal) return aIdeal - bIdeal;
+                    return a.d - b.d;
+                });
+            }
+        } else {
+            if (fallbackUsed) { validPipes.sort((a, b) => b.v - a.v); } 
+            else { validPipes.sort((a, b) => a.dp - b.dp); }
+        }
+
+        let best = validPipes.length > 0 ? validPipes[0] : null;
+        let alerts = [];
+        let equivTempDrop = best ? best.dp / dynMaxDP_suc * 2.0 : null; 
+
+        if (best) {
+            if(type === 'liquid' && dir === "UP") {
+                let effective_sc = sc - (liqGain||0);
+                if (best.flash > effective_sc) alerts.push({lvl:'err', msg:`🔥 FLASH GAS RISK: ${best.flash.toFixed(1)}K eq. drop > ${effective_sc}K Eff. Subcool`});
+                alerts.push({lvl:'warn', msg:`⚠️ Lift Penalty: -${staticPsi.toFixed(1)} PSI`});
+            } else if(type === 'liquid' && dir === "DOWN") {
+                alerts.push({lvl:'ok', msg:`✅ Gravity Assist: +${staticPsi.toFixed(1)} PSI`});
+            }
+            if(type === 'suction') {
+                best.v_part = best.v * partLoadRatio;
+                if (dir === "UP" && rise > 4 && best.v_part < 5.0) {
+                    let bestSmall = pipeList[0];
+                    pipeList.forEach(p_test => {
+                        let a_test = Math.PI * Math.pow((p_test.d / 1000) / 2, 2);
+                        let v_part_test = (m_dot * partLoadRatio) / (rho * a_test);
+                        if(v_part_test >= 5.0) bestSmall = p_test;
+                    });
+                    best.doubleRiser = true;
+                    best.smallRiser = bestSmall.lbl;
+                    alerts.push({lvl:'warn', msg:`⚠️ DOUBLE RISER REQ: Part-Load Vel < 5m/s. Small Riser: ${bestSmall.n}`});
+                } else if(best.st === "Low Vel") {
+                    if (dir === "UP") alerts.push({lvl:'warn', msg:"⚠️ LOW VELOCITY (RISER): Install Oil Traps"});
+                    else alerts.push({lvl:'warn', msg:"⚠️ LOW VELOCITY: Risk of poor oil return"});
+                }
+            } else if (type === 'discharge') {
+                if(best.st === "Low Vel") {
+                    if (dir === "UP") alerts.push({lvl:'warn', msg:"⚠️ LOW VELOCITY (RISER): Ensure Oil Separator Installed"});
+                    else alerts.push({lvl:'warn', msg:"⚠️ LOW VELOCITY: Gas condensation risk"});
+                }
+                if (calcTempC && calcTempC > 107) {
+                    alerts.push({lvl:'err', msg:"🔥 HIGH TEMP (>107°C): Liquid injection required"});
+                }
+            }
+        }
+
+        return { best: best, alerts: alerts, all: results, dischTemp: calcTempC, equivTempDrop: equivTempDrop };
+    },
+
+    scheduleCalc: function() {
+        clearTimeout(this.calcTimer);
+        this.calcTimer = setTimeout(() => this.runCalculation(), 380);
+    },
+
+    runCalculation: function(silent = false) {
+        let pApp = document.getElementById('pApp').value;
+        let pTopo = document.getElementById('pTopo').value;
+        let ref = document.getElementById('pRef').value;
+        let pipeStd = document.getElementById('pStd').value;
+        let evap = parseFloat(document.getElementById('pEvap').value);
+        let cond = parseFloat(document.getElementById('pCond').value);
+        let sh = parseFloat(document.getElementById('pSH').value);
+        let sc = parseFloat(document.getElementById('pSC').value);
+        let pPart = parseFloat(document.getElementById('pPart').value) || 25;
+        let pLiqGain = parseFloat(document.getElementById('pLiqGain').value) || 0;
+        let isCondHigher = this.loc === 'higher';
+
+        let tempResults = [];
+        let html = "";
+
+        if (pApp === 'ref' && pTopo === 'rack') {
+            let rLoad = parseFloat(document.getElementById('rLoad').value) || 0;
+            let dLen = parseFloat(document.getElementById('rDisLen').value) || 0;
+            let dRise = parseFloat(document.getElementById('rDisRise').value) || 0;
+            let lLen = parseFloat(document.getElementById('rLiqLen').value) || 0;
+            let lRise = parseFloat(document.getElementById('rLiqRise').value) || 0;
+
+            let sumLoad = 0;
+            this.circuits.forEach(c => { sumLoad += parseFloat(c.load) || 0; });
+            let banner = document.getElementById('xcheckBanner');
+            if (!silent && rLoad > 0 && Math.abs(rLoad - sumLoad) > 0.5) {
+                banner.textContent = `⚠ RACK LOAD MISMATCH: Rack set to ${rLoad} kW but circuits total ${sumLoad.toFixed(1)} kW.`;
+                banner.style.display = 'block';
+            } else {
+                banner.style.display = 'none';
+            }
+
+            if (rLoad > 0) {
+                let disRes = this.calculateLine('discharge', rLoad, dLen, dRise, isCondHigher, this.rackDisFits, ref, pipeStd, evap, cond, sh, sc, pPart, pLiqGain);
+                let liqRes = this.calculateLine('liquid', rLoad, lLen, lRise, isCondHigher, this.rackLiqFits, ref, pipeStd, evap, cond, sh, sc, pPart, pLiqGain);
+                tempResults.push({ id: 'rack_main', label: 'MAIN RACK PIPING', from: 'Rack', to: 'Condenser', load: rLoad, len: dLen, rise: dRise, lLen, lRise, suction: null, discharge: disRes, liquid: liqRes, isRack: true });
+            }
+        }
+
+        for (let i = 0; i < this.circuits.length; i++) {
+            let c = this.circuits[i];
+            let load = parseFloat(c.load);
+            let len = parseFloat(c.len);
+            let rise = parseFloat(c.rise) || 0;
+
+            if(isNaN(load) || isNaN(len)) { 
+                tempResults.push({ id: c.id, label: c.name, from: c.from, to: c.to, load: null, incomplete: true });
+                continue; 
+            }
+
+            let sucFits = c.fittings.filter(f => f.line === 'suction');
+            let liqFits = c.fittings.filter(f => f.line === 'liquid');
+
+            let sucRes = this.calculateLine('suction', load, len, rise, isCondHigher, sucFits, ref, pipeStd, evap, cond, sh, sc, pPart, pLiqGain);
+            let liqRes = this.calculateLine('liquid', load, len, rise, isCondHigher, liqFits, ref, pipeStd, evap, cond, sh, sc, pPart, pLiqGain);
+
+            tempResults.push({ id: c.id, label: c.name, from: c.from, to: c.to, load: load, len: len, rise: rise, suction: sucRes, discharge: null, liquid: liqRes, isRack: false });
+        }
+
+        this.calcResults = tempResults;
+        if(!silent) this.renderResultsUI(tempResults);
+        this.autoSaveProject(); // Save state on every calc
+        return true;
+    },
+
+    renderResultsUI: function(results) {
+        let container = document.getElementById('resultsContainer');
+        if (!results.length) {
+            container.innerHTML = '<div class="no-results">Configure circuits on the left.<br>Results update automatically.</div>';
+            return;
+        }
+
+        let html = '';
+        results.forEach((res, ri) => {
+            if (res.incomplete) {
+                html += `<div class="result-card"><div class="result-card-header"><span class="result-circ-name">${res.label}</span><span class="result-status status-warn">INCOMPLETE</span></div><div class="result-na">Enter load and length to calculate</div></div>`;
+                return;
+            }
+
+            let allOk = true, anyFail = false;
+            [res.suction, res.discharge, res.liquid].forEach(lr => {
+                if (!lr) return;
+                if (!lr.best) { anyFail = true; allOk = false; }
+                else if (lr.best.st !== 'OK') allOk = false;
+                if (lr.alerts && lr.alerts.some(a=>a.lvl==='err')) { anyFail=true; allOk=false; }
+            });
+            let statusCls  = anyFail ? 'status-fail' : allOk ? 'status-ok' : 'status-warn';
+            let statusText = anyFail ? 'FAIL' : allOk ? 'ALL OK' : 'WARN';
+
+            let renderLine = (lr, lineLabel) => {
+                if (!lr) return '';
+                if (!lr.best) return `<div class="result-line"><div class="result-line-label">${lineLabel}</div><div class="result-fail-msg">No suitable pipe found</div></div>`;
+
+                let b = lr.best;
+                let velCls = b.v > 18 ? 'err' : b.v < 4 ? 'warn' : 'ok';
+                if (lineLabel.includes('LIQ')) velCls = b.v > 2.5 ? 'err' : b.v < 0.5 ? 'warn' : 'ok';
+                let pdCls  = b.dp > b.maxDP ? 'err' : b.dp > b.maxDP*0.8 ? 'warn' : 'ok';
+
+                let extraMetrics = '';
+                if (lineLabel.includes('SUC') && b.v_part !== undefined) {
+                    extraMetrics += `<div class="result-metric"><div class="result-metric-label">PART-LOAD</div><div class="result-metric-val">${b.v_part.toFixed(1)} m/s</div></div>`;
+                }
+                if (lr.dischTemp != null) {
+                    let tCls = lr.dischTemp > 107 ? 'err' : lr.dischTemp > 90 ? 'warn' : 'ok';
+                    extraMetrics += `<div class="result-metric"><div class="result-metric-label">DISCH TEMP</div><div class="result-metric-val ${tCls}">${lr.dischTemp.toFixed(0)}°C</div></div>`;
+                }
+                if (lr.equivTempDrop != null && lineLabel.includes('SUC')) {
+                    extraMetrics += `<div class="result-metric"><div class="result-metric-label">ΔT EQUIV</div><div class="result-metric-val ${lr.equivTempDrop>0.5?'warn':'ok'}">${lr.equivTempDrop.toFixed(2)}°C</div></div>`;
+                }
+
+                let alertsHtml = (lr.alerts||[]).map(a => `<div class="result-alert alert-${a.lvl}">${a.msg}</div>`).join('');
+
+                return `<div class="result-line">
+                  <div class="result-line-label">${lineLabel}</div>
+                  <div class="result-pipe-size">${b.pipe.lbl}</div>
+                  <div class="result-metrics">
+                    <div class="result-metric"><div class="result-metric-label">VELOCITY</div><div class="result-metric-val ${velCls}">${b.v.toFixed(1)} m/s</div></div>
+                    <div class="result-metric"><div class="result-metric-label">PRESS DROP</div><div class="result-metric-val ${pdCls}">${b.dp.toFixed(2)} PSI / ${(b.dp*6.895).toFixed(1)} kPa</div></div>
+                    ${extraMetrics}
+                    ${b.doubleRiser ? `<div class="result-metric"><div class="result-metric-label">SMALL RISER</div><div class="result-metric-val warn">${b.smallRiser}</div></div>` : ''}
+                  </div>
+                  ${alertsHtml ? `<div class="result-alerts">${alertsHtml}</div>` : ''}
+                </div>`;
+            };
+
+            let fromTo = [res.from, res.to].filter(Boolean).join(' → ');
+            let loadStr = res.load ? res.load + ' kW' : '';
+
+            html += `<div class="result-card">
+              <div class="result-card-header"><span class="result-circ-name">${res.label}</span><span class="result-status ${statusCls}">${statusText}</span></div>
+              ${fromTo ? `<div style="font-size:11px;color:var(--dim);margin-bottom:8px;font-family:var(--mono)">${fromTo}${loadStr?' · '+loadStr:''}</div>` : ''}
+              <div class="result-lines">
+                ${res.isRack ? renderLine(res.discharge, 'DISCHARGE LINE') + renderLine(res.liquid, 'LIQUID DROP-LEG') : renderLine(res.suction, 'SUCTION LINE') + renderLine(res.liquid, 'LIQUID LINE')}
+              </div>
+              <button class="result-detail-btn" onclick="RefriApp.genDetailedPDF(${ri})">📄 DETAILED REPORT</button>
+            </div>`;
+        });
+        container.innerHTML = html;
+    },
+
+    // --- AUTOSAVE ENGINE ---
+    autoSaveProject: function() {
+        let data = {
+            pName: document.getElementById('pName').value,
+            pPrep: document.getElementById('pPrep').value,
+            pApp: document.getElementById('pApp').value,
+            pTopo: document.getElementById('pTopo').value,
+            rLoad: document.getElementById('rLoad') ? document.getElementById('rLoad').value : 0,
+            rDisLen: document.getElementById('rDisLen') ? document.getElementById('rDisLen').value : 0,
+            rDisRise: document.getElementById('rDisRise') ? document.getElementById('rDisRise').value : 0,
+            rLiqLen: document.getElementById('rLiqLen') ? document.getElementById('rLiqLen').value : 0,
+            rLiqRise: document.getElementById('rLiqRise') ? document.getElementById('rLiqRise').value : 0,
+            rackDisFits: this.rackDisFits,
+            rackLiqFits: this.rackLiqFits,
+            ref: document.getElementById('pRef').value,
+            pipeStd: document.getElementById('pStd').value,
+            evap: document.getElementById('pEvap').value,
+            cond: document.getElementById('pCond').value,
+            sh: document.getElementById('pSH').value,
+            sc: document.getElementById('pSC').value,
+            pPart: document.getElementById('pPart').value,
+            pLiqGain: document.getElementById('pLiqGain').value,
+            loc: this.loc,
+            circuits: this.circuits,
+            circuitCounter: this.circuitCounter
+        };
+        localStorage.setItem('refriPro_autosave', JSON.stringify(data));
+    },
+
+    autoLoadProject: function() {
+        let saved = localStorage.getItem('refriPro_autosave');
+        if (saved) {
+            try {
+                let data = JSON.parse(saved);
+                this.restoreData(data);
+                return true;
+            } catch (err) {
+                console.error("Autosave corrupted", err);
+            }
+        }
+        return false;
+    },
+
+    restoreData: function(data) {
+        document.getElementById('pName').value = data.pName || '';
+        document.getElementById('pPrep').value = data.pPrep || '';
+        
+        if (data.pApp) {
+            document.getElementById('pApp').value = data.pApp;
+            this.updateSystemArch();
+            if (data.pTopo) document.getElementById('pTopo').value = data.pTopo;
+            this.updateSystemArch();
+            if(document.getElementById('rLoad')) {
+                document.getElementById('rLoad').value = data.rLoad || 0;
+                document.getElementById('rDisLen').value = data.rDisLen || 0;
+                document.getElementById('rDisRise').value = data.rDisRise || 0;
+                document.getElementById('rLiqLen').value = data.rLiqLen || 0;
+                document.getElementById('rLiqRise').value = data.rLiqRise || 0;
+            }
+            this.rackDisFits = data.rackDisFits || [];
+            this.rackLiqFits = data.rackLiqFits || [];
+            this.renderRackFittings();
+        }
+
+        document.getElementById('pRef').value = data.ref || 'R404A';
+        document.getElementById('pStd').value = data.pipeStd || 'acr';
+        document.getElementById('pEvap').value = data.evap || -10;
+        document.getElementById('pCond').value = data.cond || 45;
+        document.getElementById('pSH').value = data.sh || 8;
+        document.getElementById('pSC').value = data.sc || 3;
+        if(data.pPart) document.getElementById('pPart').value = data.pPart;
+        if(data.pLiqGain) document.getElementById('pLiqGain').value = data.pLiqGain;
+        if(data.loc) this.setLoc(data.loc); else this.setLoc('higher');
+        
+        this.circuits = data.circuits || [];
+        if(data.circuitCounter) this.circuitCounter = data.circuitCounter;
+        else this.circuitCounter = this.circuits.length + 1;
+        
+        this.renderCircuits();
+        this.updateParamsSummary();
+        document.getElementById('resultsContainer').innerHTML = '<div class="no-results">Project loaded. Modifying inputs will recalculate automatically.</div>';
+        this.scheduleCalc();
+    },
+
+    saveProject: function() {
+        this.autoSaveProject();
+        let saved = localStorage.getItem('refriPro_autosave');
+        let blob = new Blob([saved], {type: "application/json"});
+        let url = URL.createObjectURL(blob);
+        let a = document.createElement('a');
+        a.href = url;
+        let pName = document.getElementById('pName').value || "RefriProject";
+        a.download = pName.replace(/\s+/g, '_') + "_Backup.json";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+    },
+
+    loadProject: function(event) {
+        let file = event.target.files[0];
+        if(!file) return;
+        let reader = new FileReader();
+        let self = this;
+        reader.onload = function(e) {
+            try {
+                let data = JSON.parse(e.target.result);
+                self.restoreData(data);
+                alert("Project loaded successfully!");
+            } catch(err) { alert("Invalid Project File."); }
+        };
+        reader.readAsText(file);
+        event.target.value = ''; // Reset input to allow reloading same file
+    },
+
+    resetProject: function() {
+        if(confirm("Are you sure you want to reset to defaults? All unsaved data will be lost.")) {
+            localStorage.removeItem('refriPro_autosave');
+            document.getElementById('pName').value = '';
+            document.getElementById('pPrep').value = '';
+            document.getElementById('pApp').value = 'ref';
+            this.updateSystemArch();
+            document.getElementById('pStd').value = 'acr';
+            document.getElementById('pEvap').value = '-10';
+            document.getElementById('pCond').value = '45';
+            document.getElementById('pSH').value = '8';
+            document.getElementById('pSC').value = '3';
+            document.getElementById('pPart').value = '25';
+            document.getElementById('pLiqGain').value = '0';
+            if(document.getElementById('rLoad')) {
+                document.getElementById('rLoad').value = '0';
+                document.getElementById('rDisLen').value = '0';
+                document.getElementById('rDisRise').value = '0';
+                document.getElementById('rLiqLen').value = '0';
+                document.getElementById('rLiqRise').value = '0';
+            }
+            this.setLoc('higher');
+            this.circuits = [];
+            this.rackDisFits = [];
+            this.rackLiqFits = [];
+            this.circuitCounter = 1;
+            this.addCircuit();
+            document.getElementById('resultsContainer').innerHTML = '<div class="no-results">Configure circuits on the left.<br>Results update automatically.</div>';
+            document.getElementById('xcheckBanner').style.display = 'none';
+            this.updateParamsSummary();
+        }
+    },
+
+    // --- PDF EXPORTS ---
+    addNotebookBackground: (doc) => {
+        const drawGrid = () => {
+            doc.setFillColor(255, 246, 248); 
+            doc.rect(0, 0, 210, 297, 'F');
+            doc.setDrawColor(245, 230, 235); 
+            doc.setLineWidth(0.2);
+            for (let x = 0; x <= 210; x += 5) doc.line(x, 0, x, 297);
+            for (let y = 0; y <= 297; y += 5) doc.line(0, y, 210, y);
+        };
+        const origAddPage = doc.addPage.bind(doc);
+        doc.addPage = function(...args) {
+            origAddPage(...args);
+            drawGrid();
+            return doc;
+        };
+        drawGrid(); 
+    },
+
+    genDetailedPDF: async function(index) {
+        if(!window.jspdf) return alert("PDF Engine loading...");
+        let res = this.calcResults[index];
+        if(!res || res.incomplete) return alert("Please calculate pipes first.");
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        RefriApp.addNotebookBackground(doc);
+
+        let dtStr = new Date().toLocaleDateString('en-GB');
+
+        // Deep Burgundy Header
+        doc.setFillColor(90, 30, 50); doc.rect(0, 0, 210, 25, 'F');
+        // Soft Rose Accent
+        doc.setFillColor(220, 130, 150); doc.rect(0, 25, 210, 2, 'F');
+        
+        doc.setTextColor(255, 255, 255); doc.setFontSize(18);
+        doc.text('REFRISYSTEM PRO v27', 105, 15, { align:'center' });
+        doc.setTextColor(220, 130, 150); doc.setFontSize(9);
+        doc.text('CIRCUIT DETAILED REPORT  ·  ' + dtStr, 105, 22, { align:'center' });
+        
+        doc.setTextColor(90, 30, 50); doc.setFontSize(11);
+        doc.text(`Circuit: ${res.label}`, 14, 36);
+
+        doc.autoTable({
+            startY: 40, theme:'plain', margin:{top:30, bottom:20},
+            body:[
+                ['Project Name:', document.getElementById('pName').value || '-', 'Prepared By:', document.getElementById('pPrep').value || '-'],
+                ['Refrigerant:', document.getElementById('pRef').value, 'Route:', `${res.from || '-'} to ${res.to || '-'}`],
+                ['Load / Length:', `${res.load} kW / ${res.isRack ? 'Rack Piping' : res.len + ' m'}`, 'Rise:', `${res.isRack ? res.dRise : res.rise} m`],
+                ['Evap / Cond:', `${document.getElementById('pEvap').value} °C / ${document.getElementById('pCond').value} °C` + (res.isRack && res.discharge && res.discharge.dischTemp ? ` (Disch: ${res.discharge.dischTemp.toFixed(1)}°C)` : ''), 'SH / SC:', `${document.getElementById('pSH').value} K / ${document.getElementById('pSC').value} K`]
+            ]
+        });
+
+        let yPos = doc.lastAutoTable.finalY + 15;
+        let p1 = res.isRack ? res.discharge : res.suction;
+        let p2 = res.liquid;
+        let lbl1 = res.isRack ? "DISCHARGE LINE ITERATIONS" : "SUCTION LINE ITERATIONS";
+        
+        if (p1) {
+            if(yPos > 250) { doc.addPage(); yPos = 40; }
+            doc.setTextColor(90, 30, 50);
+            doc.text(lbl1, 14, yPos);
+            let sucData = p1.all.map(r => [r.pipe.lbl, r.v.toFixed(1) + " m/s", r.dp.toFixed(2) + " PSI", r.st]);
+            doc.autoTable({
+                startY: yPos + 5, margin: { top: 35, bottom: 20 },
+                head: [['PIPE SIZE', 'VELOCITY', 'PRESSURE DROP', 'STATUS']],
+                body: sucData, theme: 'grid', headStyles: { fillColor: [180, 80, 110], textColor: [255, 255, 255] },
+                didParseCell: function(data) {
+                    if(data.section === 'body' && p1.best && data.row.raw[0] === p1.best.pipe.lbl) {
+                        data.cell.styles.fillColor = [230, 245, 255]; data.cell.styles.fontStyle = 'bold';
+                    }
+                }
+            });
+            yPos = doc.lastAutoTable.finalY + 15;
+        }
+        
+        if (p2) {
+            if(yPos > 250) { doc.addPage(); yPos = 40; }
+            doc.setTextColor(90, 30, 50);
+            doc.text("LIQUID LINE ITERATIONS", 14, yPos);
+            let liqData = p2.all.map(r => [r.pipe.lbl, r.v.toFixed(1) + " m/s", r.dp.toFixed(2) + " PSI", r.st]);
+            doc.autoTable({
+                startY: yPos + 5, margin: { top: 35, bottom: 20 },
+                head: [['PIPE SIZE', 'VELOCITY', 'PRESSURE DROP', 'STATUS']],
+                body: liqData, theme: 'grid', headStyles: { fillColor: [180, 80, 110], textColor: [255, 255, 255] },
+                didParseCell: function(data) {
+                    if(data.section === 'body' && p2.best && data.row.raw[0] === p2.best.pipe.lbl) {
+                        data.cell.styles.fillColor = [230, 255, 235]; data.cell.styles.fontStyle = 'bold';
+                    }
+                }
+            });
+        }
+
+        const pageCountTotal = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCountTotal; i++) {
+            doc.setPage(i);
+            doc.setFontSize(10); doc.setTextColor(150, 150, 150);
+            doc.text(`Page ${i} of ${pageCountTotal}`, 105, 287, { align: 'center' });
+        }
+
+        doc.save(res.label.replace(/\s+/g, '_') + "_DetailedReport.pdf");
+    },
+
+    genPDF: async function() {
+        if(!window.jspdf) return alert("PDF Engine loading...");
+        this.runCalculation(true);
+        if(!this.calcResults.length) return alert("Please fill all circuit inputs to generate PDF.");
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        RefriApp.addNotebookBackground(doc);
+
+        let dtStr = new Date().toLocaleDateString('en-GB');
+
+        // Deep Burgundy Header
+        doc.setFillColor(90, 30, 50); doc.rect(0, 0, 210, 25, 'F');
+        // Soft Rose Accent
+        doc.setFillColor(220, 130, 150); doc.rect(0, 25, 210, 2, 'F');
+
+        doc.setTextColor(255, 255, 255); doc.setFontSize(18);
+        doc.text('REFRISYSTEM PRO v27', 105, 15, { align:'center' });
+        doc.setTextColor(220, 130, 150); doc.setFontSize(9);
+        doc.text('MASTER COMPLIANCE REPORT  ·  ' + dtStr, 105, 22, { align:'center' });
+
+        doc.setTextColor(90, 30, 50); doc.setFontSize(11); doc.text("PROJECT DETAILS & PARAMETERS", 14, 40);
+        doc.autoTable({
+            startY: 45, margin: { top: 35, bottom: 20 }, theme: 'plain',
+            body: [
+                ['Project Name:', document.getElementById('pName').value || '-', 'Prepared By:', document.getElementById('pPrep').value || '-'],
+                ['Refrigerant:', document.getElementById('pRef').value, 'Pipe Std:', document.getElementById('pStd').value.toUpperCase()],
+                ['Evaporating:', document.getElementById('pEvap').value + ' °C', 'Condensing:', document.getElementById('pCond').value + ' °C'],
+                ['Superheat:', document.getElementById('pSH').value + ' K', 'Subcooling:', document.getElementById('pSC').value + ' K']
+            ]
+        });
+
+        let yPos1 = doc.lastAutoTable.finalY + 15;
+        if(yPos1 > 250) { doc.addPage(); yPos1 = 40; }
+        doc.setTextColor(90, 30, 50);
+        doc.text("CIRCUIT SIZING RESULTS", 14, yPos1);
+        
+        let resBodyData = [];
+        this.calcResults.forEach(res => {
+            if(res.incomplete) return;
+            let lenStr = (res.len === 0 && res.rise > 0) ? "Riser (" + res.rise + "m)" : (res.len||0) + "m";
+            if (res.isRack) lenStr = `D:${res.dLen}m | L:${res.lLen}m`;
+
+            let p1 = res.isRack ? res.discharge : res.suction;
+            let p1Str = 'FAIL';
+            if (p1 && p1.best) {
+                p1Str = `${p1.best.pipe.lbl}\nVel: ${p1.best.v.toFixed(1)}m/s\nPD: ${p1.best.dp.toFixed(1)} PSI (${(p1.best.dp*6.894).toFixed(1)} kPa)`;
+                if (p1.dischTemp) p1Str += `\nTemp: ${p1.dischTemp.toFixed(0)}°C`;
+                if (!res.isRack) {
+                    p1Str += `\nPart Vel: ${p1.best.v_part.toFixed(1)}m/s`;
+                    if (p1.best.doubleRiser) p1Str += `\n*DOUBLE RISER: ${p1.best.smallRiser}`;
+                }
+            }
+            
+            let p2Str = res.liquid && res.liquid.best ? `${res.liquid.best.pipe.lbl}\nVel: ${res.liquid.best.v.toFixed(1)}m/s\nPD: ${res.liquid.best.dp.toFixed(1)} PSI (${(res.liquid.best.dp*6.894).toFixed(1)} kPa)` : 'FAIL';
+            
+            resBodyData.push([`${res.label}\n${res.load}kW / ${lenStr}`, p1Str, p2Str]);
+        });
+
+        doc.autoTable({ 
+            startY: yPos1 + 5, margin: { top: 35, bottom: 20 },
+            head: [['CIRCUIT / ROUTE', 'SUCTION / DISCH', 'LIQUID LINE']], 
+            body: resBodyData, theme: 'grid', headStyles: { fillColor: [180, 80, 110], textColor: [255, 255, 255] }
+        });
+
+        let yPosComp = doc.lastAutoTable.finalY + 15;
+        if(yPosComp > 250) { doc.addPage(); yPosComp = 40; }
+        doc.setFillColor(230, 230, 230); doc.rect(14, yPosComp, 182, 8, 'F');
+        doc.setFontSize(10); doc.setTextColor(90, 30, 50);
+        doc.text("DESIGN BASIS & STANDARDS COMPLIANCE", 105, yPosComp + 6, { align: "center" });
+
+        let criteria = [
+            ['Criterion', 'Limit / Reference', 'Status'],
+            ['Gas Velocity Max', '18.0 m/s (ASHRAE Ref. Chap 2)', 'APPLIED'],
+            ['Suction Riser Min', '5.0 m/s (Oil Return)', 'APPLIED'],
+            ['Liquid Velocity Max', '2.5 m/s (Prevent Hammer)', 'APPLIED'],
+            ['Friction Loss Max', '3.00 PSI (ASHRAE Eq. Drop)', 'APPLIED'],
+            ['Calculation Method', 'Dynamic Darcy-Weisbach / 2-Phase', 'APPLIED']
+        ];
+        doc.autoTable({ 
+            startY: yPosComp + 10, margin: { top: 35, bottom: 20 }, 
+            head: [criteria[0]], body: criteria.slice(1), theme: 'grid', 
+            headStyles: { fillColor: [180, 80, 110], textColor: [255, 255, 255] } 
+        });
+
+        const pageCountTotal = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCountTotal; i++) {
+            doc.setPage(i);
+            doc.setFontSize(10); doc.setTextColor(150, 150, 150);
+            doc.text(`Page ${i} of ${pageCountTotal}`, 105, 287, { align: 'center' });
+        }
+
+        doc.save((document.getElementById('pName').value || "RefriReport") + "_MasterCompliance.pdf");
+    },
+
+    exportBOMCSV: function() {
+        this.runCalculation(true);
+        if(!this.calcResults.length) return alert('No results yet. Inputs are still being processed.');
+        let bomPipes={}, bomFits={};
+        this.calcResults.filter(r=>!r.incomplete).forEach(res => {
+            let sPipe = res.isRack ? (res.discharge && res.discharge.best ? res.discharge.best.pipe.lbl : null) : (res.suction && res.suction.best ? res.suction.best.pipe.lbl : null);
+            let lPipe = res.liquid && res.liquid.best ? res.liquid.best.pipe.lbl : null;
+            if (res.isRack) {
+                if (sPipe) bomPipes[sPipe]=(bomPipes[sPipe]||0)+(res.dLen||0)+(res.dRise||0);
+                if (lPipe) bomPipes[lPipe]=(bomPipes[lPipe]||0)+(res.lLen||0)+(res.lRise||0);
+                this.rackDisFits.forEach(f=>{ if(sPipe) bomFits[f.name+' - '+sPipe]=(bomFits[f.name+' - '+sPipe]||0)+f.qty; });
+                this.rackLiqFits.forEach(f=>{ if(lPipe) bomFits[f.name+' - '+lPipe]=(bomFits[f.name+' - '+lPipe]||0)+f.qty; });
+            } else {
+                let c = this.circuits.find(cc=>cc.id===res.id);
+                if (!c) return;
+                let tSL=(parseFloat(c.len)||0)+(parseFloat(c.rise)||0);
+                if (sPipe) {
+                    bomPipes[sPipe]=(bomPipes[sPipe]||0)+tSL;
+                    if (res.suction.best && res.suction.best.doubleRiser) {
+                        let smPipe = res.suction.best.smallRiser;
+                        bomPipes[smPipe] = (bomPipes[smPipe]||0) + (parseFloat(c.rise)||0);
+                    }
+                }
+                if (lPipe) bomPipes[lPipe]=(bomPipes[lPipe]||0)+tSL; 
+                c.fittings.forEach(f=>{ let sz=f.line==='suction'?sPipe:lPipe; if (sz) bomFits[f.name+' - '+sz]=(bomFits[f.name+' - '+sz]||0)+f.qty; });
+            }
+        });
+        let csv = 'Item Description,Quantity,UOM,Category\n';
+        Object.entries(bomPipes).forEach(([k,v])=>csv+=`"${k}",${v.toFixed(1)},m,Pipe\n`);
+        Object.entries(bomFits).forEach(([k,v])=>csv+=`"${k}",${v},Nos,Fitting\n`);
+        let blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+        let a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        a.download = (document.getElementById('pName').value||'Project')+'_BOM.csv';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    },
+
+    // --- OTHER TABS ---
+    calcCond: function() {
+        let q = parseFloat(document.getElementById('cLoad').value);
+        let p = parseFloat(document.getElementById('cPower').value) || q*0.45;
+        let amb = parseFloat(document.getElementById('cAmb').value);
+        let targ = parseFloat(document.getElementById('cTarg').value);
+        let rat = parseFloat(document.getElementById('cRated').value);
+        if (isNaN(q)||isNaN(rat)) return alert('Enter evap load and rated capacity.');
+        let thr  = q + p; let act  = rat * ((targ-amb)/15); let marg = act - thr;
+        document.getElementById('resCond').style.display = 'block';
+        let st = document.getElementById('cStatus');
+        st.textContent = marg>=0 ? 'PASS ✓' : 'FAIL ✗';
+        st.style.color = marg>=0 ? 'var(--success)' : 'var(--err)';
+        document.getElementById('cTHR').textContent  = thr.toFixed(1)+' kW';
+        document.getElementById('cAct').textContent  = act.toFixed(1)+' kW';
+        document.getElementById('cMarg').textContent = (marg>=0?'+':'')+marg.toFixed(1)+' kW';
+        document.getElementById('cMarg').style.color = marg>=0?'var(--success)':'var(--err)';
+    },
+
+    calcIce: function() {
+        let q = parseFloat(document.getElementById('iQty').value);
+        let u = document.getElementById('iUnit').value;
+        let w = parseFloat(document.getElementById('iWater').value);
+        let amb = parseFloat(document.getElementById('iAmb').value);
+        let type = document.getElementById('iType').value;
+        
+        if(isNaN(q) || q <= 0) return alert("Enter valid Quantity");
+        if(isNaN(w) || isNaN(amb)) return alert("Enter valid temperatures");
+
+        let mass = u === 'tons' ? q * 1000 : q; 
+        
+        let t_ice = -5; let wastage = 1.05; let heat_gain = 1.15; let harvest_mult = 1.0; let cop = 2.2;
+        if (type === 'cube') { t_ice = -10; wastage = 1.15; heat_gain = 1.10; harvest_mult = 1.15; cop = 2.0; } 
+        else if (type === 'block') { t_ice = -15; wastage = 1.05; heat_gain = 1.30; harvest_mult = 1.0; cop = 1.8; }
+
+        let wReq_kg = mass * wastage;
+        let flow_lpm = wReq_kg / (24 * 60);
+        let pipe = flow_lpm < 12 ? '1/2" (15mm)' : (flow_lpm < 25 ? '3/4" (22mm)' : '1" (28mm)');
+        if (flow_lpm > 50) pipe = '1-1/4" (35mm)';
+        if (flow_lpm > 100) pipe = '1-1/2" (42mm)';
+
+        let q_water = mass * 4.184 * (w - 0);       
+        let q_latent = mass * 334;                  
+        let q_ice = mass * 2.093 * (0 - t_ice);     
+        let q_net_kj = q_water + q_latent + q_ice;  
+
+        let amb_penalty = amb > 35 ? 1 + ((amb - 35) * 0.01) : 1.0;
+        let cap_kw = (q_net_kj / 86400) * heat_gain * harvest_mult * amb_penalty;
+        
+        let comp_elec_kw = cap_kw / cop;
+        let daily_kwh = comp_elec_kw * 24;
+
+        document.getElementById('resIce').style.display = 'block';
+        document.getElementById('iCap').innerText = cap_kw.toFixed(1) + " kW";
+        document.getElementById('iWReq').innerText = (wReq_kg / 1000).toFixed(2) + " m³ / day";
+        document.getElementById('iWPipe').innerText = pipe;
+        document.getElementById('iCompElec').innerText = comp_elec_kw.toFixed(1) + " kW";
+        document.getElementById('iElec').innerText = daily_kwh.toFixed(0) + " kWh / day";
+    }
+};
+
+// Boot
+if (!RefriApp.autoLoadProject()) {
+    RefriApp.updateSystemArch();
+    if(RefriApp.circuits.length === 0) RefriApp.addCircuit();
+    RefriApp.updateParamsSummary();
+}
+document.getElementById('paramsStrip').classList.add('open');
+</script>
+</body>
+</html>
