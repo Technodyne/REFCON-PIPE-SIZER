@@ -1,52 +1,73 @@
-const CACHE_NAME = 'refrisystem-v27-cache';
+const CACHE_NAME = 'refrisystem-v28-cache'; // Bumped version to force browser update
 
-// The files we want to cache for offline use
-const urlsToCache = [
+// Core local files to cache immediately
+const coreAssets = [
   './',
   './index.html',
-  './manifest.json',
-  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js',
-  'https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap'
+  './manifest.json'
 ];
 
-// Install Event: Cache the files
+// Install Event: Cache core files and force the worker to activate
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Opened cache');
-        return cache.addAll(urlsToCache);
-      })
+    caches.open(CACHE_NAME).then(cache => {
+      console.log('[Service Worker] Caching core assets');
+      return cache.addAll(coreAssets);
+    })
   );
+  self.skipWaiting(); 
 });
 
-// Fetch Event: Serve from cache if available, otherwise go to network
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Cache hit - return response
-        if (response) {
-          return response;
-        }
-        return fetch(event.request);
-      })
-  );
-});
-
-// Activate Event: Clean up old caches if the version changes
+// Activate Event: Delete old caches when the version bumps
 self.addEventListener('activate', event => {
-  const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
+          if (cacheName !== CACHE_NAME) {
+            console.log('[Service Worker] Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
+    })
+  );
+  self.clients.claim();
+});
+
+// Fetch Event: Dynamic Caching
+self.addEventListener('fetch', event => {
+  // Exclude non-HTTP requests (like Chrome extensions)
+  if (!event.request.url.startsWith('http')) return;
+
+  event.respondWith(
+    caches.match(event.request).then(cachedResponse => {
+      // 1. Return the cached file if we have it (Offline support)
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+
+      // 2. If it's not in the cache, fetch it from the network
+      return fetch(event.request).then(networkResponse => {
+        // 3. Ensure the response is valid before caching
+        if (!networkResponse || networkResponse.status !== 200 || (networkResponse.type !== 'basic' && networkResponse.type !== 'cors')) {
+          return networkResponse;
+        }
+
+        // 4. Clone the successful network response and put it in the cache for next time
+        let responseToCache = networkResponse.clone();
+        caches.open(CACHE_NAME).then(cache => {
+          cache.put(event.request, responseToCache);
+        });
+
+        return networkResponse;
+        
+      }).catch(() => {
+        // Fallback: If offline and the fetch fails, force route directory hits back to index.html
+        if (event.request.mode === 'navigate') {
+          return caches.match('./index.html');
+        }
+      });
     })
   );
 });
